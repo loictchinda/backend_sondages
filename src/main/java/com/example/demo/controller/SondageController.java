@@ -18,6 +18,8 @@ import com.example.demo.dto.CreateSondageRequest;
 import com.example.demo.dto.SondageResponse;
 import com.example.demo.security.JwtUtils;
 import com.example.demo.service.SondageService;
+import com.example.demo.dto.VoteRequest;
+import com.example.demo.service.VoteService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class SondageController {
 
     private final SondageService sondageService;
+    private final VoteService voteService;
     private final JwtUtils jwtUtils;
     
     @GetMapping
@@ -92,6 +95,23 @@ public class SondageController {
             return ResponseEntity.ok("Sondage supprimé avec succès.");
         } catch (RuntimeException e) {
             // Renvoie une erreur 400 ou 403 selon le cas
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    @PostMapping("/{id}/votes")
+    public ResponseEntity<?> voter(
+            @PathVariable Long id,
+            @Valid @RequestBody VoteRequest request,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String pseudo = jwtUtils.getUserNameFromJwtToken(token);
+            
+            voteService.enregistrerVote(id, request, pseudo);
+            
+            return ResponseEntity.ok("Vote enregistré avec succès !");
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

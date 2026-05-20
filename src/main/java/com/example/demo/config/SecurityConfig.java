@@ -12,6 +12,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -47,5 +50,20 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+    
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        
+        config.setAllowCredentials(true);
+        // 3. UTILISATION DE L'URL EXACTE DE TON FRONT-END (Vite)
+        config.addAllowedOrigin("http://localhost:5173"); 
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
     }
 }

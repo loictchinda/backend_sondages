@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.CreateSondageRequest;
 import com.example.demo.dto.SondageResponse;
+import com.example.demo.dto.VoteRequest;
 import com.example.demo.security.JwtUtils;
 import com.example.demo.service.SondageService;
-import com.example.demo.dto.VoteRequest;
 import com.example.demo.service.VoteService;
 
 import jakarta.validation.Valid;
@@ -111,6 +111,14 @@ public class SondageController {
             voteService.enregistrerVote(id, request, pseudo);
             
             return ResponseEntity.ok("Vote enregistré avec succès !");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @GetMapping("/{id}/resultats")
+    public ResponseEntity<?> getResultats(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(voteService.getResultats(id));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

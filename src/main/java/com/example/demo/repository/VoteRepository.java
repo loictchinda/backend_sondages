@@ -8,5 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VoteRepository extends JpaRepository<Vote, Long> {
+	long countByOptionReponseIdOption(Long idOption);
+	long countBySondageIdSondage(Long idSondage);
     boolean existsByUtilisateurAndSondage(Utilisateur utilisateur, Sondage sondage);
 }

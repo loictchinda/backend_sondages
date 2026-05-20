@@ -1,5 +1,13 @@
 package com.example.demo.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.demo.dto.ResultatSondageResponse;
 import com.example.demo.dto.VoteRequest;
 import com.example.demo.entity.OptionReponse;
 import com.example.demo.entity.Sondage;
@@ -9,10 +17,8 @@ import com.example.demo.repository.OptionReponseRepository;
 import com.example.demo.repository.SondageRepository;
 import com.example.demo.repository.UtilisateurRepository;
 import com.example.demo.repository.VoteRepository;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -58,5 +64,34 @@ public class VoteService {
             // Capture de la contrainte unique SQL (uk_utilisateur_sondage) si la vérification métier a été contournée
             throw new RuntimeException("Erreur de base de données : Vous avez déjà voté pour ce sondage.");
         }
+        
+    }
+    
+    @Transactional(readOnly = true)
+    public ResultatSondageResponse getResultats(Long idSondage) {
+        Sondage sondage = sondageRepository.findById(idSondage)
+                .orElseThrow(() -> new RuntimeException("Sondage introuvable."));
+
+        long totalVotes = voteRepository.countBySondageIdSondage(idSondage);
+
+        List<ResultatSondageResponse.ResultatOptionResponse> optionsResultat = sondage.getOptions().stream()
+                .map(opt -> {
+                    long nbVotes = voteRepository.countByOptionReponseIdOption(opt.getIdOption());
+                    double pourcentage = totalVotes > 0 ? Math.round((double) nbVotes / totalVotes * 10000.0) / 100.0 : 0.0;
+                    return new ResultatSondageResponse.ResultatOptionResponse(
+                            opt.getIdOption(),
+                            opt.getTexteOption(),
+                            nbVotes,
+                            pourcentage
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return new ResultatSondageResponse(
+                sondage.getIdSondage(),
+                sondage.getTitre(),
+                totalVotes,
+                optionsResultat
+        );
     }
 }

@@ -17,9 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.dto.CreateSondageRequest;
 import com.example.demo.dto.SondageResponse;
 import com.example.demo.dto.VoteRequest;
+import com.example.demo.dto.InvitationRequest;
 import com.example.demo.security.JwtUtils;
 import com.example.demo.service.SondageService;
 import com.example.demo.service.VoteService;
+import com.example.demo.service.InvitationService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ public class SondageController {
 
     private final SondageService sondageService;
     private final VoteService voteService;
+    private final InvitationService invitationService;
     private final JwtUtils jwtUtils;
     
     @GetMapping
@@ -52,6 +55,17 @@ public class SondageController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/{tokenPublic}")
+    public ResponseEntity<?> consulterSondage(@PathVariable String tokenPublic) {
+        try {
+            SondageResponse response = sondageService.consulterParToken(tokenPublic);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<?> editerSondage(
             @PathVariable Long id,
@@ -67,34 +81,17 @@ public class SondageController {
         }
     }
     
- // ... ta méthode creerSondage
-
-    @GetMapping("/{tokenPublic}")
-    public ResponseEntity<?> consulterSondage(@PathVariable String tokenPublic) {
-        try {
-            SondageResponse response = sondageService.consulterParToken(tokenPublic);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            // On renvoie une erreur 404 (Not Found) si le token n'existe pas
-            return ResponseEntity.status(404).body(e.getMessage());
-        }
-    }
-    
     @DeleteMapping("/{id}")
     public ResponseEntity<?> supprimerSondage(
             @PathVariable Long id,
             @RequestHeader("Authorization") String authHeader) {
         try {
-            // Extraction du pseudo à partir du token JWT
             String token = authHeader.replace("Bearer ", "");
             String pseudo = jwtUtils.getUserNameFromJwtToken(token);
             
-            // Appel au service pour la suppression
             sondageService.supprimerSondage(id, pseudo);
-            
             return ResponseEntity.ok("Sondage supprimé avec succès.");
         } catch (RuntimeException e) {
-            // Renvoie une erreur 400 ou 403 selon le cas
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -109,12 +106,12 @@ public class SondageController {
             String pseudo = jwtUtils.getUserNameFromJwtToken(token);
             
             voteService.enregistrerVote(id, request, pseudo);
-            
             return ResponseEntity.ok("Vote enregistré avec succès !");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     @GetMapping("/{id}/resultats")
     public ResponseEntity<?> getResultats(@PathVariable Long id) {
         try {
@@ -123,5 +120,20 @@ public class SondageController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    
+
+    @PostMapping("/{id}/invitations")
+    public ResponseEntity<?> inviterUtilisateur(
+            @PathVariable Long id,
+            @Valid @RequestBody InvitationRequest request,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String pseudo = jwtUtils.getUserNameFromJwtToken(token);
+            
+            invitationService.inviterUtilisateur(id, request, pseudo);
+            return ResponseEntity.ok("Utilisateur invité avec succès !");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

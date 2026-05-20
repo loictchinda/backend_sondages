@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,6 +49,20 @@ public class SondageController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<?> editerSondage(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateSondageRequest request,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String pseudo = jwtUtils.getUserNameFromJwtToken(token);
+            SondageResponse response = sondageService.editerSondage(id, request, pseudo);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
     
  // ... ta méthode creerSondage
 
@@ -80,4 +95,5 @@ public class SondageController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    
 }

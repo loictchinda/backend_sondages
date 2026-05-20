@@ -1,18 +1,22 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.demo.dto.CreateSondageRequest;
+import com.example.demo.dto.OptionReponseResponse;
+import com.example.demo.dto.SondageResponse;
 import com.example.demo.entity.OptionReponse;
 import com.example.demo.entity.Sondage;
 import com.example.demo.entity.Utilisateur;
 import com.example.demo.repository.OptionReponseRepository;
 import com.example.demo.repository.SondageRepository;
 import com.example.demo.repository.UtilisateurRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -113,5 +117,40 @@ public class SondageService {
 
         // 3. Suppression (Hibernate gérera la suppression en cascade des options grâce au CascadeType.ALL défini dans l'entité)
         sondageRepository.delete(sondage);
+    }
+    @Transactional
+    public SondageResponse editerSondage(Long idSondage, CreateSondageRequest request, String pseudoUtilisateur) {
+        // 1. Chercher le sondage
+        Sondage sondage = sondageRepository.findById(idSondage)
+                .orElseThrow(() -> new RuntimeException("Sondage introuvable avec cet ID."));
+
+        // 2. Vérifier que c'est le créateur
+        if (!sondage.getCreateur().getPseudo().equals(pseudoUtilisateur)) {
+            throw new RuntimeException("Action non autorisée : Vous n'êtes pas le créateur de ce sondage.");
+        }
+
+        // 3. Vérifier qu'il n'y a pas encore de votes
+        boolean aDesVotes = sondage.getOptions().stream()
+                .anyMatch(opt -> !opt.getVotes().isEmpty());
+        if (aDesVotes) {
+            throw new RuntimeException("Impossible de modifier un sondage qui a déjà reçu des votes.");
+        }
+
+        // 4. Mettre à jour titre et description
+        sondage.setTitre(request.getTitre());
+        sondage.setDescription(request.getDescription());
+
+        // 5. Supprimer les anciennes options et créer les nouvelles
+        sondage.getOptions().clear();
+        List<OptionReponse> nouvellesOptions = request.getOptions().stream()
+                .map(opt -> OptionReponse.builder()
+                        .texteOption(opt.getTexteOption())
+                        .sondage(sondage)
+                        .build())
+                .collect(Collectors.toList());
+        sondage.getOptions().addAll(nouvellesOptions);
+
+        sondageRepository.save(sondage);
+        return toResponse(sondage);
     }
 }

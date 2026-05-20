@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,6 +59,25 @@ public class SondageController {
         } catch (RuntimeException e) {
             // On renvoie une erreur 404 (Not Found) si le token n'existe pas
             return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> supprimerSondage(
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            // Extraction du pseudo à partir du token JWT
+            String token = authHeader.replace("Bearer ", "");
+            String pseudo = jwtUtils.getUserNameFromJwtToken(token);
+            
+            // Appel au service pour la suppression
+            sondageService.supprimerSondage(id, pseudo);
+            
+            return ResponseEntity.ok("Sondage supprimé avec succès.");
+        } catch (RuntimeException e) {
+            // Renvoie une erreur 400 ou 403 selon le cas
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

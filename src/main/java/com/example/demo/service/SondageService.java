@@ -97,4 +97,21 @@ public class SondageService {
         // 2. Utiliser la méthode existante pour convertir l'entité en DTO
         return toResponse(sondage);
     }
+    
+ // ... tes autres méthodes (creerSondage, consulterParToken, getAllSondagesPublics)
+
+    @Transactional
+    public void supprimerSondage(Long idSondage, String pseudoUtilisateur) {
+        // 1. Chercher le sondage par son ID
+        Sondage sondage = sondageRepository.findById(idSondage)
+                .orElseThrow(() -> new RuntimeException("Sondage introuvable avec cet ID."));
+
+        // 2. Vérification des droits : est-ce que le créateur est bien l'utilisateur connecté ?
+        if (!sondage.getCreateur().getPseudo().equals(pseudoUtilisateur)) {
+            throw new RuntimeException("Action non autorisée : Vous n'êtes pas le créateur de ce sondage.");
+        }
+
+        // 3. Suppression (Hibernate gérera la suppression en cascade des options grâce au CascadeType.ALL défini dans l'entité)
+        sondageRepository.delete(sondage);
+    }
 }

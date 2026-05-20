@@ -79,4 +79,16 @@ public class SondageService {
                 optionsResponse
         );
     }
+    
+ // ... tes autres méthodes (creerSondage)
+
+    @Transactional(readOnly = true)
+    public SondageResponse consulterParToken(String tokenPublic) {
+        // 1. Chercher le sondage par son token unique
+        Sondage sondage = sondageRepository.findByTokenPublic(tokenPublic)
+                .orElseThrow(() -> new RuntimeException("Sondage introuvable avec ce token."));
+
+        // 2. Utiliser la méthode existante pour convertir l'entité en DTO
+        return toResponse(sondage);
+    }
 }

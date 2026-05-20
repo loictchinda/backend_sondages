@@ -31,4 +31,17 @@ public class SondageController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    
+ // ... ta méthode creerSondage
+
+    @GetMapping("/{tokenPublic}")
+    public ResponseEntity<?> consulterSondage(@PathVariable String tokenPublic) {
+        try {
+            SondageResponse response = sondageService.consulterParToken(tokenPublic);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            // On renvoie une erreur 404 (Not Found) si le token n'existe pas
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
 }

@@ -1,13 +1,24 @@
 package com.example.demo.controller;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.example.demo.dto.CreateSondageRequest;
 import com.example.demo.dto.SondageResponse;
 import com.example.demo.security.JwtUtils;
 import com.example.demo.service.SondageService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/sondages")
@@ -17,6 +28,11 @@ public class SondageController {
 
     private final SondageService sondageService;
     private final JwtUtils jwtUtils;
+    
+    @GetMapping
+    public ResponseEntity<List<SondageResponse>> getAllSondages() {
+        return ResponseEntity.ok(sondageService.getAllSondagesPublics());
+    }
 
     @PostMapping
     public ResponseEntity<?> creerSondage(

@@ -52,6 +52,12 @@ public class SondageService {
         // 4. Retourner la réponse
         return toResponse(sondageSaved);
     }
+    
+    public List<SondageResponse> getAllSondagesPublics() {
+        return sondageRepository.findByVisibilite(Sondage.Visibilite.public_enum).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
 
     // Convertir entité -> DTO réponse
     private SondageResponse toResponse(Sondage sondage) {

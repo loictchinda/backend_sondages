@@ -28,11 +28,9 @@ public class SondageService {
 
     @Transactional
     public SondageResponse creerSondage(CreateSondageRequest request, String pseudo) {
-        // 1. Récupérer le créateur via le pseudo du token JWT
         Utilisateur createur = utilisateurRepository.findByPseudo(pseudo)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-        // 2. Créer le sondage
         Sondage sondage = Sondage.builder()
                 .titre(request.getTitre())
                 .description(request.getDescription())
@@ -41,7 +39,6 @@ public class SondageService {
 
         sondage = sondageRepository.save(sondage);
 
-        // 3. Créer les options liées au sondage
         final Sondage sondageSaved = sondage;
         List<OptionReponse> options = request.getOptions().stream()
                 .map(opt -> OptionReponse.builder()
@@ -53,7 +50,6 @@ public class SondageService {
         optionReponseRepository.saveAll(options);
         sondageSaved.setOptions(options);
 
-        // 4. Retourner la réponse
         return toResponse(sondageSaved);
     }
     
@@ -63,7 +59,6 @@ public class SondageService {
                 .collect(Collectors.toList());
     }
 
-    // Convertir entité -> DTO réponse
     private SondageResponse toResponse(Sondage sondage) {
         List<OptionReponseResponse> optionsResponse = List.of();
         if (sondage.getOptions() != null) {
@@ -71,7 +66,7 @@ public class SondageService {
                     .map(opt -> new OptionReponseResponse(
                             opt.getIdOption(),
                             opt.getTexteOption(),
-                            0L // pas de votes à la création
+                            0L 
                     ))
                     .collect(Collectors.toList());
         }
@@ -85,62 +80,48 @@ public class SondageService {
                 sondage.getDateCreation(),
                 sondage.getDateFin(),
                 sondage.getCreateur().getPseudo(),
-                0L, // pas de votes à la création
+                0L,
                 optionsResponse
         );
     }
     
- // ... tes autres méthodes (creerSondage)
-
     @Transactional(readOnly = true)
     public SondageResponse consulterParToken(String tokenPublic) {
-        // 1. Chercher le sondage par son token unique
         Sondage sondage = sondageRepository.findByTokenPublic(tokenPublic)
                 .orElseThrow(() -> new RuntimeException("Sondage introuvable avec ce token."));
-
-        // 2. Utiliser la méthode existante pour convertir l'entité en DTO
         return toResponse(sondage);
     }
     
- // ... tes autres méthodes (creerSondage, consulterParToken, getAllSondagesPublics)
-
     @Transactional
     public void supprimerSondage(Long idSondage, String pseudoUtilisateur) {
-        // 1. Chercher le sondage par son ID
         Sondage sondage = sondageRepository.findById(idSondage)
                 .orElseThrow(() -> new RuntimeException("Sondage introuvable avec cet ID."));
 
-        // 2. Vérification des droits : est-ce que le créateur est bien l'utilisateur connecté ?
         if (!sondage.getCreateur().getPseudo().equals(pseudoUtilisateur)) {
             throw new RuntimeException("Action non autorisée : Vous n'êtes pas le créateur de ce sondage.");
         }
 
-        // 3. Suppression (Hibernate gérera la suppression en cascade des options grâce au CascadeType.ALL défini dans l'entité)
         sondageRepository.delete(sondage);
     }
+
     @Transactional
     public SondageResponse editerSondage(Long idSondage, CreateSondageRequest request, String pseudoUtilisateur) {
-        // 1. Chercher le sondage
         Sondage sondage = sondageRepository.findById(idSondage)
                 .orElseThrow(() -> new RuntimeException("Sondage introuvable avec cet ID."));
 
-        // 2. Vérifier que c'est le créateur
         if (!sondage.getCreateur().getPseudo().equals(pseudoUtilisateur)) {
             throw new RuntimeException("Action non autorisée : Vous n'êtes pas le créateur de ce sondage.");
         }
 
-        // 3. Vérifier qu'il n'y a pas encore de votes
         boolean aDesVotes = sondage.getOptions().stream()
                 .anyMatch(opt -> !opt.getVotes().isEmpty());
         if (aDesVotes) {
             throw new RuntimeException("Impossible de modifier un sondage qui a déjà reçu des votes.");
         }
 
-        // 4. Mettre à jour titre et description
         sondage.setTitre(request.getTitre());
         sondage.setDescription(request.getDescription());
 
-        // 5. Supprimer les anciennes options et créer les nouvelles
         sondage.getOptions().clear();
         List<OptionReponse> nouvellesOptions = request.getOptions().stream()
                 .map(opt -> OptionReponse.builder()

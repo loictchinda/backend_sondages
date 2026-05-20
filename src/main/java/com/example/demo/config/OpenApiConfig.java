@@ -12,10 +12,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
         info = @Info(
-                title = "HemoLink API",
-                description = "API de gestion de dons de sang et de rendez-vous",
+                title = "Sondages API",
+                description = "API de gestion des sondage",
                 version = "1.0",
-                contact = @Contact(name = "Ton Nom", email = "contact@hemolink.com")
+                contact = @Contact(name = "Groupe Numero 2", email = "contact@sondage.api.com")
         ),
         security = @SecurityRequirement(name = "bearerAuth")
 )

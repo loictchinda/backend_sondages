@@ -17,6 +17,7 @@ import com.example.demo.repository.OptionReponseRepository;
 import com.example.demo.repository.SondageRepository;
 import com.example.demo.repository.UtilisateurRepository;
 import com.example.demo.repository.VoteRepository;
+import com.example.demo.dto.HistoriqueVoteResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -93,5 +94,27 @@ public class VoteService {
                 totalVotes,
                 optionsResultat
         );
+    }
+    
+    @Transactional(readOnly = true)
+    public List<HistoriqueVoteResponse> getHistoriqueVotes(String pseudo) {
+        // 1. Récupérer l'utilisateur
+        Utilisateur utilisateur = utilisateurRepository.findByPseudo(pseudo)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé."));
+
+        // 2. Récupérer ses votes triés par date
+        List<Vote> votes = voteRepository.findByUtilisateurOrderByDateVoteDesc(utilisateur);
+
+        // 3. Convertir en DTO pour un affichage propre
+        return votes.stream()
+                .map(vote -> new HistoriqueVoteResponse(
+                        vote.getSondage().getIdSondage(),
+                        vote.getSondage().getTitre(),
+                        vote.getSondage().getTokenPublic(),
+                        vote.getOptionReponse().getIdOption(),
+                        vote.getOptionReponse().getTexteOption(),
+                        vote.getDateVote()
+                ))
+                .collect(Collectors.toList());
     }
 }

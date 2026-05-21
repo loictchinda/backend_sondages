@@ -15,6 +15,7 @@ import com.example.demo.entity.Utilisateur;
 import com.example.demo.repository.OptionReponseRepository;
 import com.example.demo.repository.SondageRepository;
 import com.example.demo.repository.UtilisateurRepository;
+import com.example.demo.repository.VoteRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +26,7 @@ public class SondageService {
     private final SondageRepository sondageRepository;
     private final OptionReponseRepository optionReponseRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final VoteRepository voteRepository;
 
     @Transactional
     public SondageResponse creerSondage(CreateSondageRequest request, String pseudo) {
@@ -59,32 +61,40 @@ public class SondageService {
                 .collect(Collectors.toList());
     }
 
-    private SondageResponse toResponse(Sondage sondage) {
-        List<OptionReponseResponse> optionsResponse = List.of();
-        if (sondage.getOptions() != null) {
-            optionsResponse = sondage.getOptions().stream()
-                    .map(opt -> new OptionReponseResponse(
+   private SondageResponse toResponse(Sondage sondage) {
+    List<OptionReponseResponse> optionsResponse = List.of();
+
+    if (sondage.getOptions() != null) {
+        optionsResponse = sondage.getOptions().stream()
+                .map(opt -> {
+                    long nbVotes = voteRepository.countByOptionReponseIdOption(opt.getIdOption());
+                    return new OptionReponseResponse(
                             opt.getIdOption(),
                             opt.getTexteOption(),
-                            0L 
-                    ))
-                    .collect(Collectors.toList());
-        }
-
-        return new SondageResponse(
-                sondage.getIdSondage(),
-                sondage.getTitre(),
-                sondage.getDescription(),
-                sondage.getTokenPublic(),
-                sondage.getVisibilite().name(),
-                sondage.getDateCreation(),
-                sondage.getDateFin(),
-                sondage.getCreateur().getPseudo(),
-                0L,
-                optionsResponse
-        );
+                            nbVotes
+                    );
+                })
+                .collect(Collectors.toList());
     }
-    
+
+   
+    long totalVotes = optionsResponse.stream()
+            .mapToLong(opt -> opt.getNombreVotes())   
+            .sum();
+
+    return new SondageResponse(
+            sondage.getIdSondage(),
+            sondage.getTitre(),
+            sondage.getDescription(),
+            sondage.getTokenPublic(),
+            sondage.getVisibilite().name(),
+            sondage.getDateCreation(),
+            sondage.getDateFin(),
+            sondage.getCreateur().getPseudo(),
+            totalVotes,
+            optionsResponse
+    );
+}
     @Transactional(readOnly = true)
     public SondageResponse consulterParToken(String tokenPublic) {
         Sondage sondage = sondageRepository.findByTokenPublic(tokenPublic)

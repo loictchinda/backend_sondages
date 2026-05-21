@@ -135,16 +135,25 @@ public class SondageService {
         return toResponse(sondage);
     }
 
-	public List<SondageResponse> getSondagesByAuteur(String pseudo) {
-		Utilisateur createur = utilisateurRepository.findByPseudo(pseudo)
-				.orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+    public List<SondageResponse> getSondagesByAuteur(String pseudo) {
 
-		long idUtilisateur = createur.getIdUtilisateur();
+        Utilisateur createur = utilisateurRepository.findByPseudo(pseudo)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-		return sondageRepository.findAll().stream()
-				.filter(sondage -> sondage.getCreateur() != null
-						&& sondage.getCreateur().getIdUtilisateur() == idUtilisateur)
-				.map(this::toResponse)
-				.collect(Collectors.toList());
-	}
+        return sondageRepository.findByCreateur_IdUtilisateur(createur.getIdUtilisateur())
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    public SondageResponse getByIdForUser(Long id, String pseudo) {
+        Sondage sondage = sondageRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sondage introuvable"));
+
+        if (!sondage.getCreateur().getPseudo().equals(pseudo)) {
+            throw new RuntimeException("Non autorisé");
+        }
+
+        return toResponse(sondage);
+    }
 }

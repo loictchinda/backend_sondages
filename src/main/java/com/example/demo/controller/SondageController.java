@@ -120,7 +120,18 @@ public class SondageController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    
+    @GetMapping("/mes-sondages")
+    public ResponseEntity<List<SondageResponse>> getMesSondages(
+            @RequestHeader("Authorization") String authHeader) {
 
+        String token = authHeader.replace("Bearer ", "");
+        String pseudo = jwtUtils.getUserNameFromJwtToken(token);
+
+        return ResponseEntity.ok(sondageService.getSondagesByAuteur(pseudo));
+    }
+    
+    
     @PostMapping("/{id}/invitations")
     public ResponseEntity<?> inviterUtilisateur(
             @PathVariable Long id,

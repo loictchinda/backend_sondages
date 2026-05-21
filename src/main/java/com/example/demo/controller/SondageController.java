@@ -56,7 +56,7 @@ public class SondageController {
         }
     }
 
-    @GetMapping("/{tokenPublic}")
+    @GetMapping("/public/{tokenPublic}")
     public ResponseEntity<?> consulterSondage(@PathVariable String tokenPublic) {
         try {
             SondageResponse response = sondageService.consulterParToken(tokenPublic);
@@ -131,6 +131,17 @@ public class SondageController {
         return (ResponseEntity<List<SondageResponse>>) ResponseEntity.ok(sondageService.getSondagesByAuteur(pseudo));
     }
     
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getSondageById(
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String token = authHeader.replace("Bearer ", "");
+        String pseudo = jwtUtils.getUserNameFromJwtToken(token);
+
+        SondageResponse response = sondageService.getByIdForUser(id, pseudo);
+        return ResponseEntity.ok(response);
+    }
     
     @PostMapping("/{id}/invitations")
     public ResponseEntity<?> inviterUtilisateur(

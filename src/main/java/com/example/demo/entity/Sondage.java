@@ -1,5 +1,4 @@
 package com.example.demo.entity;
-
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -35,7 +34,7 @@ public class Sondage {
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Visibilite visibilite = Visibilite.public_enum; // Evite conflit mot clé SQL 'public'
+    private Visibilite visibilite = Visibilite.PUBLIC; // Evite conflit mot clé SQL 'public'
 
     @Builder.Default
     @Column(name = "date_creation", nullable = false, updatable = false)
@@ -54,9 +53,10 @@ public class Sondage {
     @OneToMany(mappedBy = "sondage", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OptionReponse> options;
 
+   
     public enum Visibilite {
-        @jakarta.persistence.MapKeyColumn(name = "public") public_enum,
-        prive
+        PUBLIC,
+        PRIVE;
     }
 
     @PreUpdate

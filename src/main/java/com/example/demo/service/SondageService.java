@@ -54,7 +54,7 @@ public class SondageService {
     }
     
     public List<SondageResponse> getAllSondagesPublics() {
-        return sondageRepository.findByVisibilite(Sondage.Visibilite.public_enum).stream()
+        return sondageRepository.findByVisibilite(Sondage.Visibilite.PUBLIC).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }

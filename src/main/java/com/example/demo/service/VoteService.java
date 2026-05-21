@@ -43,7 +43,7 @@ public class VoteService {
                 .orElseThrow(() -> new RuntimeException("Sondage introuvable."));
 
         // ====== 🔒 BLOCAGE MULTI-SALLE (Tâche 2.4) ======
-        if (sondage.getVisibilite() == Sondage.Visibilite.prive) {
+        if (sondage.getVisibilite() == Sondage.Visibilite.PRIVE) {
             boolean estLeCreateur = sondage.getCreateur().getPseudo().equals(pseudo);
             InvitationId idInvitation = new InvitationId(utilisateur.getIdUtilisateur(), sondage.getIdSondage());
             

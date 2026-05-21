@@ -128,7 +128,7 @@ public class SondageController {
         String token = authHeader.replace("Bearer ", "");
         String pseudo = jwtUtils.getUserNameFromJwtToken(token);
 
-        return ResponseEntity.ok(sondageService.getSondagesByAuteur(pseudo));
+        return (ResponseEntity<List<SondageResponse>>) ResponseEntity.ok(sondageService.getSondagesByAuteur(pseudo));
     }
     
     

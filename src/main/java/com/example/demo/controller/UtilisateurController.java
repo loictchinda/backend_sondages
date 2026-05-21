@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.HistoriqueVoteResponse;
+import com.example.demo.dto.UtilisateurResponse;
 import com.example.demo.security.JwtUtils;
+import com.example.demo.service.UtilisateurService;
 import com.example.demo.service.VoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +18,18 @@ import java.util.List;
 public class UtilisateurController {
 
     private final VoteService voteService;
+    private final UtilisateurService utilisateurService;
     private final JwtUtils jwtUtils;
+    
+    @GetMapping
+    public ResponseEntity<List<UtilisateurResponse>> getAllUsers() {
+        try {
+            
+            return ResponseEntity.ok(utilisateurService.getAllUsers());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 
     @GetMapping("/me/votes")
     public ResponseEntity<?> getHistoriqueVotes(@RequestHeader("Authorization") String authHeader) {

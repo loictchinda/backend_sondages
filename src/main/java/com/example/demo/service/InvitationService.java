@@ -32,7 +32,7 @@ public class InvitationService {
         }
 
         // 3. Cohérence : On n'invite pas sur un sondage déjà public
-        if (sondage.getVisibilite() != Sondage.Visibilite.prive) {
+        if (sondage.getVisibilite() != Sondage.Visibilite.PRIVE) {
             throw new RuntimeException("Opération impossible : Ce sondage est public.");
         }
 

@@ -134,4 +134,17 @@ public class SondageService {
         sondageRepository.save(sondage);
         return toResponse(sondage);
     }
+
+	public List<SondageResponse> getSondagesByAuteur(String pseudo) {
+		Utilisateur createur = utilisateurRepository.findByPseudo(pseudo)
+				.orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+		long idUtilisateur = createur.getIdUtilisateur();
+
+		return sondageRepository.findAll().stream()
+				.filter(sondage -> sondage.getCreateur() != null
+						&& sondage.getCreateur().getIdUtilisateur() == idUtilisateur)
+				.map(this::toResponse)
+				.collect(Collectors.toList());
+	}
 }

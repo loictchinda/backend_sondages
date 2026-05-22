@@ -31,9 +31,3 @@ build/
 
 ### VS Code ###
 .vscode/
-
-#Env files
-*.env
-
-# Docker secrets
-dorcker-compose.yml
